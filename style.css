@@ -1,0 +1,37 @@
+.soldier {
+  max-width: 60;
+  display: block;
+  margin-top: 10px;
+  margin-bottom: auto;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#board {
+    background-image: url("pics/background.jpg");
+    width: 800px;
+    height: 800px;
+    border: 3px solid grey;
+    }
+
+div.row div {
+    width: 100px;
+    height: 100px;
+    }
+
+div.row div.cell {
+  box-sizing: border-box;
+  border: 1px solid white
+}
+
+div.row div {
+    float: left;
+    }
+
+div.row:after {
+    content: ".";
+    height: 0;
+    visibility: hidden;
+    display: block;
+    clear: both;
+    }

@@ -14,45 +14,43 @@
 </html>
 <script>
 
-function connect(){
-	var connectionCode = $('#connectionCode').val();
-	conn = peer.connect(connectionCode);
-	conn.on('open', function() {
-	  // Receive messages
-	  conn.on('data', function(data) {
-	    console.log('Received', data);
-	  });
-	  // Send messages
-	  conn.send('Hello!');
+var connection = null;
+var peer = null;
+
+function openPeer(){
+	peer = new Peer({key: 'qlx08v7esis02j4i'},{'debug':3});
+
+	peer.on('connection', function(conn) {
+		connection  = conn;
+		console.log('got connection');
+		connection.on('data',handleData);
 	});
 
-	var call = peer.call(connectionCode);
+	peer.on('error', function(err) {
+		console.log('error!!' + err);
+	 })
+
+	peer.on('open', function(id) {
+	  console.log('My peer ID is: ' + id);
+	});
+
+}
+function isConnected() {
+	return connection != null;
 }
 
-var peer = new Peer({key: 'qlx08v7esis02j4i'},{'debug':3});
+function sendData(data) {
+	connection.send(data);
+}
 
-peer.on('call', function(call) {
-	console.log('got it');
-  call.answer(mediaStream);
-});
-
-peer.on('connection', function(conn) {
-	connection  = conn;
-	console.log('got connection');
-	conn.on('data', function(data) {
-		console.log('Received', data);
+function connect(){
+	var connectionCode = $('#connectionCode').val();
+	connection = peer.connect(connectionCode);
+	connection.on('open', function() {
+	  // Receive messages
+	  connection.on('data',handleData);
 	});
-});
-
-peer.on('error', function(err) {
-	console.log('error!!' + err);
- })
-
-peer.on('open', function(id) {
-  console.log('My peer ID is: ' + id);
-});
-
-var connection = null;
+}
 
 
 initCells();
@@ -60,5 +58,7 @@ initPlayers();
 tableCreate();
 currentPlayer = players[1];
 placeSoldiers();
+openPeer();
+
 
 </script>

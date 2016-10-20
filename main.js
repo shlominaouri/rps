@@ -2,6 +2,9 @@ var cells = new Array();
 var players = new Array();
 var chosenCell = null;
 var currentPlayer = null;
+
+var p2p = true;
+var p2pPlayer = null;
 var images = new Array();
 
 SoldierType = {
@@ -11,6 +14,12 @@ SoldierType = {
     ROCK : "ROCK",
     PAPER : "PAPER",
 }
+
+var gameCommands = {
+  moveSoldier: function(data){
+
+  }
+};
 
 function getImage(soldier){
 	var name = (soldier.player.id == 1) ? "MORTY" : "RICK";
@@ -62,11 +71,10 @@ Cell.prototype.attack = function (otherCell) {
 }
 
 function rotateBoard(){
-	rotateBoard90();
-	rotateBoard90();
+  rotateBoard180();
 }
 
-function rotateBoard90(){
+function rotateBoard180(){
 	var soldiersCopy = new Array();
 	for (var i = 0; i < 8; i++) {
 		soldiersCopy[i] = new Array();
@@ -77,9 +85,10 @@ function rotateBoard90(){
 
 	for (var i = 0; i < 8; i++) {
 		for (var j = 0; j < 8; j++) {
-				cells[i][j].soldier = soldiersCopy[7-j][i];
+				cells[i][j].soldier = soldiersCopy[7-i][7-j];
 		}
 	}
+  refreshAllCells();
 }
 
 function Cell(row,column){
@@ -121,11 +130,37 @@ Cell.prototype.validMove = function (otherCell) {
 
 }
 
+function handleData(data) {
+  console.log("got data:" + data);
+  var command = JSON.parse(data);
+  var fromRow = command['from'][0]
+  var fromCol = command['from'][1]
+  var toRow = command['to'][0]
+  var toCol = command['to'][1]
+
+  var cellFrom = cells[7-fromRow][7-fromCol];
+  var cellTo = cells[7-toRow][7-toCol];
+  cellFrom.moveSoldierTo(cellTo)
+}
+
+function createCommand(type,from,to = null,soldier = null) {
+  var command = {};
+  command['type'] = type;
+  command['from'] = [from.row,from.col];
+  if(to)
+    command['to'] = [to.row,to.col];
+  if(soldier)
+    command['soldier'] = soldier.type;
+  return JSON.stringify(command);
+}
+
 Cell.prototype.moveSoldierTo = function (otherCell) {
   if(this.validMove(otherCell) == true){
       if(otherCell.soldier != null){
+        if (p2p) sendData(createCommand("move",this,otherCell,this.soldier))
         this.attack(otherCell);
       } else {
+        if (p2p) sendData(createCommand("move",this,otherCell))
         otherCell.setSoldier(this.soldier);
         this.removeSoldier();
       }
@@ -157,8 +192,12 @@ function refreshAllCells(){
 	}
 }
 function nextPlayer(){
-  currentPlayer = players[(currentPlayer.id + 1) % 2];
-	rotateBoard();
+  if(p2p){
+    currentPlayer = players[(currentPlayer.id + 1) % 2];
+  	rotateBoard();
+  } else {
+
+  }
 	refreshAllCells();
 }
 
@@ -217,10 +256,12 @@ function placeSoldiers(){
 }
 
 function validSelectCell(cell) {
-  return cell.soldier != null &&
+  var validSelect =  cell.soldier != null &&
     cell.soldier.player == currentPlayer &&
     cell.soldier.type != SoldierType.BOMB &&
     cell.soldier.type != SoldierType.FLAG
+  var itsMyTurn = (!p2p || (p2p &&  cell.soldier.player == currentPlayer))
+  return validSelect && itsMyTurn;
 }
 
 function clickCell(e){

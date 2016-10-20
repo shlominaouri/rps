@@ -23,6 +23,8 @@ function openPeer(){
 	peer.on('connection', function(conn) {
 		connection  = conn;
 		console.log('got connection');
+		whoAmI = Players.MORTY;
+		startGame();
 		connection.on('data',handleData);
 	});
 
@@ -45,6 +47,8 @@ function sendData(data) {
 
 function connect(){
 	var connectionCode = $('#connectionCode').val();
+	whoAmI = Players.RICK;
+	startGame();
 	connection = peer.connect(connectionCode);
 	connection.on('open', function() {
 	  // Receive messages
@@ -52,12 +56,14 @@ function connect(){
 	});
 }
 
+function startGame(){
+	initCells();
+	initPlayers();
+	tableCreate();
+	currentPlayer = players[1];
+	placeSoldiers();
+}
 
-initCells();
-initPlayers();
-tableCreate();
-currentPlayer = players[1];
-placeSoldiers();
 openPeer();
 
 

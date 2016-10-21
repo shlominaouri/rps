@@ -132,9 +132,10 @@ Cell.prototype.setSoldier = function (soldier) {
     this.refreshCell();
 }
 
-Cell.prototype.setElement = function (e,img) {
+Cell.prototype.setElement = function (e,img,background) {
     this.element = e;
 		this.img = img;
+    this.background = background;
 }
 
 Cell.prototype.validMove = function (otherCell) {
@@ -222,7 +223,11 @@ function nextPlayer(){
 }
 
 function setChosenCell(cell){
+  if(chosenCell)
+    $(chosenCell.background).removeClass("chosenCell");
   chosenCell = cell;
+  if(cell)
+    $(cell.background).addClass("chosenCell");
 }
 
 function messageToScreen(msg){
@@ -321,13 +326,16 @@ function tableCreate() {
         row.className  = "row";
         for (var j = 0; j < 8; j++) {
             var cell = document.createElement('div');
+            var cellBackground = document.createElement('div');
 						var img = document.createElement('img');
+            cellBackground.className = "backgroundCell";
 						img.className = "soldier";
+            cell.appendChild(cellBackground);
 						cell.appendChild(img);
             cell.className = "cell";
             $(cell).data("cell",cells[i][j]);
 						$(cell).attr("xy",i+"_" +j);
-            cells[i][j].setElement(cell,img);
+            cells[i][j].setElement(cell,img,cellBackground);
             cell.onclick = function() { clickCell(this); };
             row.appendChild(cell);
         }

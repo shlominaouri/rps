@@ -5,6 +5,18 @@
   margin-bottom: auto;
   margin-left: auto;
   margin-right: auto;
+  position: relative;
+  z-index: 50;
+}
+
+.chosenCell {
+  background-color:black;
+}
+
+.backgroundCell {
+  position: absolute;
+  z-index: 1;
+  opacity: 0.2;
 }
 
 #board {
@@ -12,6 +24,7 @@
     width: 800px;
     height: 800px;
     border: 3px solid grey;
+    margin: auto;
     }
 
 div.row div {
@@ -21,7 +34,8 @@ div.row div {
 
 div.row div.cell {
   box-sizing: border-box;
-  border: 1px solid white
+  border: 1px solid white;
+  position: relative;
 }
 
 div.row div {

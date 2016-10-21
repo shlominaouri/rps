@@ -9,6 +9,38 @@
   z-index: 50;
 }
 
+.messages {
+  position: absolute;
+  z-index: 500;
+  position: fixed;
+  bottom:0%;;
+  top: 0; right: 0; bottom: 0; left: 0;
+}
+.messages_img {
+  width:100%;
+  height:100%;
+  z-index: 500;
+  position: relative;
+}
+
+.messages_input {
+  position: absolute;
+  bottom: 100px;
+  left: 50px;
+  width: 100px;
+  z-index: 501;
+}
+
+.messages_text {
+   font-family: Helvetica, sans-serif;
+   position: absolute;
+   bottom: 100px;
+   left: 50px;
+   width: 100%;
+   z-index: 501;
+
+}
+
 .chosenCell {
   background-color:black;
 }

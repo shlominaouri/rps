@@ -142,6 +142,11 @@ Cell.prototype.validMove = function (otherCell) {
   return ((Math.abs(this.row - otherCell.row) + Math.abs(this.col - otherCell.col) == 1));
 }
 
+Cell.prototype.validChangeSoldier = function (otherCell) {
+  return whoAmI == otherCell.soldier.player &&
+      whoAmI == currentPlayer.id;
+}
+
 function handleData(data) {
   console.log("got data:" + data);
   var command = JSON.parse(data);
@@ -302,14 +307,16 @@ function validSelectCell(cell) {
 function clickCell(e){
   var thisCell = $(e).data("cell");
   if (chosenCell) {
-    if(chosenCell.validMove(thisCell)){
-      if (thisCell.soldier) {
-        sendData(createCommand("revealAndMove",chosenCell,thisCell,true))
-      } else {
+    if(thisCell.soldier && thisCell.soldier.player.id == whoAmI) { //change soldier
+      setChosenCell(thisCell);
+    } else if(chosenCell.validMove(thisCell)){ //move soldier
+      if (thisCell.soldier) { // move and attack
+          sendData(createCommand("revealAndMove",chosenCell,thisCell,true))
+      } else {  // just move
         sendData(createCommand("move",chosenCell,thisCell,false))
         chosenCell.moveSoldierTo(thisCell);
       }
-    } else {
+    } else{
       console.log("invalid move");
     }
   } else if(validSelectCell(thisCell)){

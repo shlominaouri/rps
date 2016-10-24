@@ -57,30 +57,46 @@ function iWin(type1,type2){
   return type1 == SoldierType.ROCK && type2 == SoldierType.SCISSORS
   || type1 == SoldierType.PAPER && type2 == SoldierType.ROCK
   || type1 == SoldierType.SCISSORS && type2 == SoldierType.PAPER
+  || type1 == SoldierType.BOMB
 }
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 
 Cell.prototype.attack = function (otherCell) {
     var defender = otherCell.soldier;
     var attacker = this.soldier;
-    console.log("defender " + defender.type + " attacker " + attacker.type );
-    if(attacker.type == defender.type) {
-      console.log("TIE");
-    } else if(defender.type == SoldierType.FLAG) {
-      messageToScreen(attacker.player.name + " Won");
-    } else if (defender.type == SoldierType.BOMB) {
-      console.log("attacker lose removing this " + this.row + "-" + this.col);
-      this.removeSoldier();
-      console.log("removing bomb " +  otherCell.row + "-" + otherCell.col);
-      otherCell.removeSoldier();
-    } else if (iWin(attacker.type,defender.type)){ // WON FIGHT
-      console.log("attacker wins");
-      otherCell.removeSoldier();
-    } else { // LOSE FIGHT
-      console.log("attacker lose");
-      this.removeSoldier();
-    }
+    var thisCell = this;
     otherCell.reveal();
     this.reveal();
+    setTimeout(function(){
+      console.log("defender " + defender.type + " attacker " + attacker.type );
+      if(attacker.type == defender.type) {
+        console.log("TIE");
+        nextPlayer();
+      } else if(defender.type == SoldierType.FLAG) {
+        messageToScreen(attacker.player.name + " Won");
+      } else if (defender.type == SoldierType.BOMB ||
+                attacker.type == SoldierType.BOMB) {
+        console.log("bomb removing this " + this.row + "-" + this.col);
+        thisCell.removeSoldier();
+        console.log("removing bomb " +  otherCell.row + "-" + otherCell.col);
+        otherCell.removeSoldier();
+        nextPlayer();
+      } else if (iWin(attacker.type,defender.type)){ // WON FIGHT
+        console.log("attacker wins");
+        otherCell.removeSoldier();
+        atomicMoveSolider(thisCell,otherCell);
+        setChosenCell(null);
+      } else { // LOSE FIGHT
+        console.log("attacker lose");
+        thisCell.removeSoldier();
+        nextPlayer();
+      }
+    }, 1000);
+
 }
 
 function rotateBoard(){
@@ -139,7 +155,13 @@ Cell.prototype.setElement = function (e,img,background) {
 }
 
 Cell.prototype.validMove = function (otherCell) {
-  return ((Math.abs(this.row - otherCell.row) + Math.abs(this.col - otherCell.col) == 1));
+  var simpleMove = ((Math.abs(this.row - otherCell.row) + Math.abs(this.col - otherCell.col) == 1));
+  var longMove = ((this.row == otherCell.row) && ( Math.abs(this.col - otherCell.col) <=2))
+                || (( Math.abs(this.row - otherCell.row) <=2) && (this.col == otherCell.col));
+  var alhson = (Math.abs(this.row - otherCell.row) == Math.abs(this.col - otherCell.col))
+              && Math.abs(this.row - otherCell.row) <= 2;
+  var samePlace = this == otherCell;
+  return (simpleMove || longMove || alhson) && !samePlace;
 }
 
 Cell.prototype.validChangeSoldier = function (otherCell) {
@@ -183,17 +205,20 @@ function createCommand(type,from,to = null,reveal = false,final = false) {
   return JSON.stringify(command);
 }
 
+function atomicMoveSolider(from,to){
+  to.setSoldier(from.soldier);
+  from.removeSoldier();
+}
+
 Cell.prototype.moveSoldierTo = function (otherCell) {
   if(this.validMove(otherCell) == true){
       console.log("valid move");
       if(otherCell.soldier != null){
         this.attack(otherCell);
       } else {
-        otherCell.setSoldier(this.soldier);
-        this.removeSoldier();
+        atomicMoveSolider(this,otherCell);
+        nextPlayer();
       }
-      setChosenCell(null);
-      nextPlayer();
   }
 }
 
@@ -224,6 +249,7 @@ function nextPlayer(){
     currentPlayer = players[(currentPlayer.id + 1) % 2];
   	//rotateBoard();
   }
+  setChosenCell(null);
 	refreshAllCells();
 }
 
@@ -293,8 +319,8 @@ function validSelectCell(cell) {
   var validSelect = cell.soldier != null &&
     cell.soldier.player == currentPlayer &&
     currentPlayer.id == whoAmI &&
-    cell.soldier.type != SoldierType.BOMB &&
-    cell.soldier.type != SoldierType.FLAG &&
+  //  cell.soldier.type != SoldierType.BOMB &&
+  //  cell.soldier.type != SoldierType.FLAG &&
     cell.soldier.player == currentPlayer;
 
   if(validSelect)
@@ -302,6 +328,11 @@ function validSelectCell(cell) {
   else
     console.log("invalid cell");
   return validSelect;
+}
+
+function moveSoldier(fromCell,toCell){
+  sendData(createCommand("move",fromCell,toCell,false))
+  fromCell.moveSoldierTo(toCell);
 }
 
 function clickCell(e){
@@ -313,8 +344,9 @@ function clickCell(e){
       if (thisCell.soldier) { // move and attack
           sendData(createCommand("revealAndMove",chosenCell,thisCell,true))
       } else {  // just move
-        sendData(createCommand("move",chosenCell,thisCell,false))
-        chosenCell.moveSoldierTo(thisCell);
+        moveSoldier(chosenCell,thisCell);
+        //sendData(createCommand("move",chosenCell,thisCell,false))
+        //chosenCell.moveSoldierTo(thisCell);
       }
     } else{
       console.log("invalid move");
@@ -325,7 +357,7 @@ function clickCell(e){
 }
 
 function tableCreate() {
-    var body = document.getElementsByTagName('body')[0];
+    var body = document.getElementById('main');
     var board = document.createElement('div');
     board.id = "board";
     for (var i = 0; i < 8; i++) {

@@ -24,11 +24,14 @@
 }
 
 .messages_input {
+  font-family: Helvetica, sans-serif;
   position: absolute;
-  bottom: 100px;
+  bottom: 80px;
   left: 50px;
-  width: 100px;
+  width: 500px;
   z-index: 501;
+  font-size: 1em;
+  font-weight: bold;
 }
 
 .messages_text {

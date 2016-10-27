@@ -1,0 +1,102 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+		<script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>
+		<script src="main.js"></script>
+		<script src="view.js"></script>
+		<script src="minigame.js"></script>
+		<title>Rick And Morty RPS</title>
+		<link rel="stylesheet" type="text/css" href="style.css">
+	</head>
+	<body>
+		<div id=main class="game">
+			<div id="minigame">
+				<div hand="PAPER" class="minigame_box" onclick="minigameClick(this)")><text>Paper</text></div>
+				<div hand="ROCK" class="minigame_box" onclick="minigameClick(this)"><text>Rock</text></div>
+				<div hand="SCISSORS" class="minigame_box" onclick="minigameClick(this)"><text>Scissors</text></div>
+			</div>
+			<div class="messages" id="message" onclick="clickMessage()">
+				<img class="messages_img" id="messages_img" src="pics/rickTalking.png"></img>
+				<h2 class="messages_text" id="messages_text">Generating a special inter-galactic code<h2>
+				<input class="messages_input" id="connectionCode2" onpaste="onPaste()" placeholder="Or .. Paste your friend code here"></input>
+			</div>
+		</div>
+  </body>
+</html>
+<script>
+
+var connection = null;
+var peer = null;
+var allowRemoveMessage = false;
+
+function clickMessage(){
+	if(allowRemoveMessage){
+		$("#message").hide();
+	}
+}
+
+function openPeer(){
+	peer = new Peer({key: 'qlx08v7esis02j4i'},{'debug':3});
+
+	peer.on('connection', function(conn) {
+		connection  = conn;
+		console.log('got connection');
+		whoAmI = Players.MORTY;
+		startGame();
+		connection.on('data',handleData);
+	});
+
+	peer.on('error', function(err) {
+		console.log('error!!' + err);
+	 })
+
+	peer.on('open', function(id) {
+		$('#codeHere').text(id);
+		$("#messages_text").text("Your code is " + id + " send it to another morty")
+	  console.log('My peer ID is: ' + id);
+	});
+
+}
+function isConnected() {
+	return connection != null;
+}
+
+function sendData(data) {
+	if (connection)
+		connection.send(data);
+}
+function onPaste(){
+	setTimeout(function () {
+			var connectionCode = $('#connectionCode2').val().replace(/[^a-z0-9]/gi,'');
+			console.log("sending code " + connectionCode);
+			connect(connectionCode);
+	 }, 100);
+ }
+
+
+function connect(code){
+	console.log("connection Code" + code);
+	whoAmI = Players.RICK;
+	connection = peer.connect(code);
+	connection.on('open', function() {
+		startGame();
+	  connection.on('data',handleData);
+	});
+}
+
+function startGame(){
+	$("#message").hide();
+	$("#connectionCode2").hide();
+	currentPlayer = players[0];
+	placeSoldiers();
+	allowRemoveMessage = true;
+}
+
+initCells();
+initPlayers();
+tableCreate();
+openPeer();
+
+
+</script>

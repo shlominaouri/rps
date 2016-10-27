@@ -22,15 +22,6 @@ SoldierType = {
     PAPER : "PAPER",
 }
 
-
-function getImage(soldier){
-	var name = (soldier.player.id == 1) ? "MORTY" : "RICK";
-	var type = soldier.type;
-	var location = (soldier.player.id == whoAmI) ? "BACK" : "FRONT";
-	var revealed = (soldier.player.id == whoAmI && soldier.revealed) ? "_R" : "";
-	return "pics/" + name +"_" + type +"_" + location + revealed + ".png";
-}
-
 function Player(id,name){
   this.id =  id
   this.name =  name
@@ -66,18 +57,26 @@ function sleep(ms) {
 
 
 Cell.prototype.attack = function (otherCell) {
+    var fromCell = this;
+    var toCell = otherCell;
     var defender = otherCell.soldier;
     var attacker = this.soldier;
     var thisCell = this;
     otherCell.reveal();
     this.reveal();
+    var iAmTheAttacker = thisCell.soldier.player.id == whoAmI;
     setTimeout(function(){
       console.log("defender " + defender.type + " attacker " + attacker.type );
       if(attacker.type == defender.type) {
         console.log("TIE");
+        startMiniGame(fromCell,toCell);
         nextPlayer();
       } else if(defender.type == SoldierType.FLAG) {
-        messageToScreen(attacker.player.name + " Won");
+        if(iAmTheAttacker){
+          messageToScreen("Great Battale, you won!");
+        } else {
+          messageToScreen("You lose again");
+        }
       } else if (defender.type == SoldierType.BOMB ||
                 attacker.type == SoldierType.BOMB) {
         console.log("bomb removing this " + this.row + "-" + this.col);
@@ -90,6 +89,11 @@ Cell.prototype.attack = function (otherCell) {
         otherCell.removeSoldier();
         atomicMoveSolider(thisCell,otherCell);
         setChosenCell(null);
+        if(iAmTheAttacker){
+          messageToScreen("Great move, you have another turn");
+        } else {
+          messageToScreen("ohhh too bad");
+        }
       } else { // LOSE FIGHT
         console.log("attacker lose");
         thisCell.removeSoldier();
@@ -133,19 +137,9 @@ Cell.prototype.removeSoldier = function () {
 		$(this.img).hide();
 }
 
-Cell.prototype.refreshCell = function () {
-  if(this.soldier != null ) {
-    var soldier = this.soldier;
-		$(this.img).show();
-		$(this.img).attr("src",getImage(soldier));
-  } else {
-		$(this.img).hide();
-	}
-}
-
 Cell.prototype.setSoldier = function (soldier) {
     this.soldier = soldier;
-    this.refreshCell();
+    refreshCell(this);
 }
 
 Cell.prototype.setElement = function (e,img,background) {
@@ -172,29 +166,40 @@ Cell.prototype.validChangeSoldier = function (otherCell) {
 function handleData(data) {
   console.log("got data:" + data);
   var command = JSON.parse(data);
-  var fromRow = command['from'][0]
-  var fromCol = command['from'][1]
-  var toRow = command['to'][0]
-  var toCol = command['to'][1]
-  var cellFrom = cells[7-fromRow][7-fromCol];
-  var cellTo = cells[7-toRow][7-toCol];
-  if (command['type'] == "revealAndMove") {
-    if (command['fromSoldier']) {
-      cellFrom.reveal(command['fromSoldier']);
+  if(command['type']=="minigame"){
+    miniGame.handleCommand(command);
+  } else if (command['type']== "mouseOver"){
+    if(command['show']){
+      console.log("adding class mouse over");
+      $(cells[command['row'],command['col']]).addClass("mouseOver");
+    } else {
+      $(cells[command['row'],command['col']]).removeClass("mouseOver");
     }
-    if (command['toSoldier']) {
-      cellTo.reveal(command['toSoldier']);
-    }
-    if(!command['final']){
-      sendData(createCommand('revealAndMove',cellFrom,cellTo,true,true));
-    }
-    cellFrom.moveSoldierTo(cellTo);
   } else {
-    cellFrom.moveSoldierTo(cellTo)
+    var fromRow = command['from'][0]
+    var fromCol = command['from'][1]
+    var toRow = command['to'][0]
+    var toCol = command['to'][1]
+    var cellFrom = cells[7-fromRow][7-fromCol];
+    var cellTo = cells[7-toRow][7-toCol];
+    if (command['type'] == "revealAndMove") {
+      if (command['fromSoldier']) {
+        cellFrom.reveal(command['fromSoldier']);
+      }
+      if (command['toSoldier']) {
+        cellTo.reveal(command['toSoldier']);
+      }
+      if(!command['final']){
+        sendData(createMoveCommand('revealAndMove',cellFrom,cellTo,true,true));
+      }
+      cellFrom.moveSoldierTo(cellTo);
+    } else {
+      cellFrom.moveSoldierTo(cellTo)
+    }
   }
 }
 
-function createCommand(type,from,to = null,reveal = false,final = false) {
+function createMoveCommand(type,from,to = null,reveal = false,final = false) {
   var command = {};
   command['type'] = type;
   command['from'] = [from.row,from.col];
@@ -210,8 +215,17 @@ function atomicMoveSolider(from,to){
   from.removeSoldier();
 }
 
+function markMovedCell (cell) {
+  $(cell.background).addClass("movedCell");
+  setTimeout(function() { $(cell.background).removeClass("movedCell"); },2000);
+}
+
 Cell.prototype.moveSoldierTo = function (otherCell) {
   if(this.validMove(otherCell) == true){
+      if(whoAmI != this.soldier.player.id){
+        markMovedCell(this);
+        markMovedCell(otherCell);
+      }
       console.log("valid move");
       if(otherCell.soldier != null){
         this.attack(otherCell);
@@ -240,7 +254,7 @@ function initCells(){
 function refreshAllCells(){
 	for (var i = 0; i < 8; i++) {
 		for (var j = 0; j < 8; j++) {
-				cells[i][j].refreshCell()
+				refreshCell(cells[i][j])
 		}
 	}
 }
@@ -248,6 +262,9 @@ function nextPlayer(){
   if(p2p){
     currentPlayer = players[(currentPlayer.id + 1) % 2];
   	//rotateBoard();
+  }
+  if (currentPlayer.id == whoAmI) {
+    messageToScreen("Your turn now");
   }
   setChosenCell(null);
 	refreshAllCells();
@@ -262,7 +279,9 @@ function setChosenCell(cell){
 }
 
 function messageToScreen(msg){
-    alert(msg);
+  $("#message").show();
+  $("#messages_text").text(msg);
+  setTimeout(function(){$("#message").hide()},5000);
 }
 
 function addSoldiersToStack(stack,type,amount) {
@@ -280,6 +299,32 @@ function getStack(){
   shuffle(stack);
   return stack;
 }
+
+function cellMosueOut (){
+  var thisCell = $(this).data("cell");
+  var command = { }
+  command['type'] = "mouseOver";
+  command['show'] = false;
+  command['row'] = thisCell.row;
+  command['col'] = thisCell.col;
+  ///sendData(JSON.stringify(command)); TODO
+}
+
+function cellMosueOver (){
+  var thisCell = $(this).data("cell");
+  var command = { }
+  command['type'] = "mouseOver";
+  command['show'] = true;
+  command['row'] = this.row;
+  command['col'] = this.col;
+  //sendData(JSON.stringify(command)); TODO
+}
+
+function eachback(a){
+    $(a).mouseover(m2);
+}
+
+$( ".backgroundCell" ).each(eachback)
 
 function shuffle (array) {
   var i = 0
@@ -320,18 +365,19 @@ function validSelectCell(cell) {
     cell.soldier.player == currentPlayer &&
     currentPlayer.id == whoAmI &&
   //  cell.soldier.type != SoldierType.BOMB &&
-  //  cell.soldier.type != SoldierType.FLAG &&
+    cell.soldier.type != SoldierType.FLAG &&
     cell.soldier.player == currentPlayer;
-
   if(validSelect)
     console.log("cell was selected");
-  else
+  else {
     console.log("invalid cell");
+    vibrateSoldier(cell);
+  }
   return validSelect;
 }
 
 function moveSoldier(fromCell,toCell){
-  sendData(createCommand("move",fromCell,toCell,false))
+  sendData(createMoveCommand("move",fromCell,toCell,false))
   fromCell.moveSoldierTo(toCell);
 }
 
@@ -342,11 +388,9 @@ function clickCell(e){
       setChosenCell(thisCell);
     } else if(chosenCell.validMove(thisCell)){ //move soldier
       if (thisCell.soldier) { // move and attack
-          sendData(createCommand("revealAndMove",chosenCell,thisCell,true))
+          sendData(createMoveCommand("revealAndMove",chosenCell,thisCell,true))
       } else {  // just move
         moveSoldier(chosenCell,thisCell);
-        //sendData(createCommand("move",chosenCell,thisCell,false))
-        //chosenCell.moveSoldierTo(thisCell);
       }
     } else{
       console.log("invalid move");
@@ -357,28 +401,30 @@ function clickCell(e){
 }
 
 function tableCreate() {
-    var body = document.getElementById('main');
-    var board = document.createElement('div');
-    board.id = "board";
-    for (var i = 0; i < 8; i++) {
-        var row = document.createElement('div');
-        row.className  = "row";
-        for (var j = 0; j < 8; j++) {
-            var cell = document.createElement('div');
-            var cellBackground = document.createElement('div');
-						var img = document.createElement('img');
-            cellBackground.className = "backgroundCell";
-						img.className = "soldier";
-            cell.appendChild(cellBackground);
-						cell.appendChild(img);
-            cell.className = "cell";
-            $(cell).data("cell",cells[i][j]);
-						$(cell).attr("xy",i+"_" +j);
-            cells[i][j].setElement(cell,img,cellBackground);
-            cell.onclick = function() { clickCell(this); };
-            row.appendChild(cell);
-        }
-        board.appendChild(row);
-    }
-    body.appendChild(board);
+  var body = document.getElementById('main');
+  var board = document.createElement('div');
+  board.id = "board";
+  for (var i = 0; i < 8; i++) {
+      var row = document.createElement('div');
+      row.className  = "row";
+      for (var j = 0; j < 8; j++) {
+          var cell = document.createElement('div');
+          var cellBackground = document.createElement('div');
+          $(cell).mouseover(cellMosueOver);
+          $(cell).mouseout(cellMosueOut);
+					var img = document.createElement('img');
+          cellBackground.className = "backgroundCell";
+					img.className = "soldier";
+          cell.appendChild(cellBackground);
+					cell.appendChild(img);
+          cell.className = "cell";
+          $(cell).data("cell",cells[i][j]);
+					$(cell).attr("xy",i+"_" +j);
+          cells[i][j].setElement(cell,img,cellBackground);
+          cell.onclick = function() { clickCell(this); };
+          row.appendChild(cell);
+      }
+      board.appendChild(row);
+  }
+  body.appendChild(board);
 }

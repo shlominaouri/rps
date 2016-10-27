@@ -1,24 +1,69 @@
 .soldier {
-  max-width: 60;
+  max-width: 90%;
+  max-height: 90%;
   display: block;
-  margin-top: 10px;
+  margin-top: 3px;
   margin-bottom: auto;
-  margin-left: auto;
+  margin-left: 5px;
   margin-right: auto;
   position: relative;
   z-index: 50;
+}
+.minigame_box {
+  width: 67px;
+  height: 60px;
+  background-color: #bb7777;
+  float: left;
+  margin-top: 13;
+  padding: 7px 7px 7px 7px;
+  margin-left: 40;
+}
+
+#minigame {
+    display:none;
+    width: 400;
+    height: 100px;
+    position: absolute;
+    background-color: white;
+    /* margin: 0 auto; */
+    top: 260;
+    left: 252;
+    z-index: 502;
+    box-shadow: rgba(0, 0, 0, 0.74902) 0px 0px 32px 0px;
+    border-radius: 32px 32px 32px 32px;
+    -moz-border-radius: 32px 32px 32px 32px;
+    -webkit-border-radius: 32px 32px 32px 32px;
+    border: 0px solid #000000;
+}
+#board {
+    box-shadow: rgba(0, 0, 0, 0.74902) 0px 0px 32px 0px;
+    background-image: url("pics/background.jpg");
+    width: 560px;
+    height: 560px;
+    border: 3px solid grey;
+    left: 170px;
+    top: 30px;
+    position:relative;
+}
+
+.game {
+    border-radius: 1px;
+    height: 650px;
+    width: 900px;
+    border: 3px solid grey;
+    margin: auto;
+    position: relative;
+    background-color: #424250;
 }
 
 .messages {
   position: absolute;
   z-index: 500;
-  position: fixed;
   bottom:0%;;
-  top: 0; right: 0; bottom: 0; left: 0;
+  right: 0; bottom: -20px; left: 0;
 }
 .messages_img {
-  width:100%;
-  height:100%;
+  width:500px;
   z-index: 500;
   position: relative;
 }
@@ -26,22 +71,29 @@
 .messages_input {
   font-family: Helvetica, sans-serif;
   position: absolute;
-  bottom: 80px;
-  left: 50px;
-  width: 500px;
+  bottom: 40px;
+  left: 30px;
+  width: 350px;
   z-index: 501;
-  font-size: 1em;
+  font-size: 0.6em;
   font-weight: bold;
 }
 
 .messages_text {
    font-family: Helvetica, sans-serif;
    position: absolute;
-   bottom: 100px;
-   left: 50px;
-   width: 100%;
+   bottom: 55px;
+   left: 30px;
+   font-size: 0.8em;
    z-index: 501;
+}
 
+.mouseOver {
+  background-color:white;
+}
+
+.movedCell {
+  background-color:red;
 }
 
 .chosenCell {
@@ -54,17 +106,9 @@
   opacity: 0.2;
 }
 
-#board {
-    background-image: url("pics/background.jpg");
-    width: 800px;
-    height: 800px;
-    border: 3px solid grey;
-    margin: auto;
-    }
-
 div.row div {
-    width: 100px;
-    height: 100px;
+    width: 70px;
+    height: 70px;
     }
 
 div.row div.cell {

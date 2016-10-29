@@ -12,9 +12,15 @@
 	<body>
 		<div id=main class="game">
 			<div id="minigame">
-				<div hand="PAPER" class="minigame_box" onclick="minigameClick(this)")><text>Paper</text></div>
-				<div hand="ROCK" class="minigame_box" onclick="minigameClick(this)"><text>Rock</text></div>
-				<div hand="SCISSORS" class="minigame_box" onclick="minigameClick(this)"><text>Scissors</text></div>
+				<div hand="PAPER" class="minigame_box" onclick="minigameClick(this)")>
+					<img id="minigame_paper" class="minigame_soldier" class="soldier" src="pics/MORTY_PAPER_FRONT.png"></img>
+				</div>
+				<div hand="ROCK" class="minigame_box" onclick="minigameClick(this)">
+					<img id="minigame_rock" class="minigame_soldier" class="soldier" src="pics/MORTY_ROCK_FRONT.png"></img>
+				</div>
+				<div hand="SCISSORS" class="minigame_box" onclick="minigameClick(this)">
+					<img id="minigame_scissors" class="minigame_soldier" class="soldier" src="pics/MORTY_SCISSORS_FRONT.png"></img>
+				</div>
 			</div>
 			<div class="messages" id="message" onclick="clickMessage()">
 				<img class="messages_img" id="messages_img" src="pics/rickTalking.png"></img>

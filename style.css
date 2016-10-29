@@ -10,34 +10,39 @@
   z-index: 50;
 }
 .minigame_box {
-  width: 67px;
-  height: 60px;
-  background-color: #bb7777;
+  width: 69px;
+  height: 75;
   float: left;
-  margin-top: 13;
+  margin-top: -1px;
   padding: 7px 7px 7px 7px;
-  margin-left: 40;
+  margin-left: 35px;
 }
 
+.minigame_soldier {
+  max-width: 100%;
+}
+
+
 #minigame {
-    display:none;
-    width: 400;
-    height: 100px;
-    position: absolute;
-    background-color: white;
-    /* margin: 0 auto; */
-    top: 260;
-    left: 252;
-    z-index: 502;
-    box-shadow: rgba(0, 0, 0, 0.74902) 0px 0px 32px 0px;
-    border-radius: 32px 32px 32px 32px;
-    -moz-border-radius: 32px 32px 32px 32px;
-    -webkit-border-radius: 32px 32px 32px 32px;
-    border: 0px solid #000000;
+  /* background-color: azure; */
+  display: none;
+  width: 390;
+  height: 90px;
+  position: absolute;
+  background-color: #faf96d;
+  /* margin: 0 auto; */
+  top: 271px;
+  left: 257px;
+  z-index: 502;
+  box-shadow: rgba(0, 0, 0, 0.74902) 0px 0px 32px 0px;
+  border-radius: 32px 32px 32px 32px;
+  -moz-border-radius: 32px 32px 32px 32px;
+  -webkit-border-radius: 32px 32px 32px 32px;
+  border: 0px solid #000000;
 }
 #board {
     box-shadow: rgba(0, 0, 0, 0.74902) 0px 0px 32px 0px;
-    background-image: url("pics/background.jpg");
+    background-image: url("background.png");
     width: 560px;
     height: 560px;
     border: 3px solid grey;

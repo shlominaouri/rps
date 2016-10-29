@@ -148,14 +148,34 @@ Cell.prototype.setElement = function (e,img,background) {
     this.background = background;
 }
 
+function validDiagonal(fromCell,toCell,distance){
+  var rowDiff = toCell.row - fromCell.row
+  var colDiff = toCell.col - fromCell.col
+  var middleCellRow = fromCell.row + Math.sign(rowDiff)
+  var middleCellCol = fromCell.col + Math.sign(colDiff)
+  var middleCell = cells[middleCellRow][middleCellCol]
+  return middleCell.soldier==null &&
+        (Math.abs(rowDiff) == Math.abs(colDiff)) &&
+        Math.abs(rowDiff) <= distance;
+}
+
+function validLong(fromCell,toCell,distance){
+  var rowDiff = toCell.row - fromCell.row
+  var colDiff = toCell.col - fromCell.col
+  var middleCellRow = fromCell.row + Math.sign(rowDiff)
+  var middleCellCol = fromCell.col + Math.sign(colDiff)
+  var middleCell = cells[middleCellRow][middleCellCol]
+  return middleCell.soldier==null &&
+        (Math.abs(rowDiff) + Math.abs(colDiff) <= distance)
+}
+
 Cell.prototype.validMove = function (otherCell) {
   var simpleMove = ((Math.abs(this.row - otherCell.row) + Math.abs(this.col - otherCell.col) == 1));
-  var longMove = ((this.row == otherCell.row) && ( Math.abs(this.col - otherCell.col) <=2))
-                || (( Math.abs(this.row - otherCell.row) <=2) && (this.col == otherCell.col));
-  var alhson = (Math.abs(this.row - otherCell.row) == Math.abs(this.col - otherCell.col))
-              && Math.abs(this.row - otherCell.row) <= 2;
+  var longMove = validLong(this,otherCell,2);
+  var diagonal = validDiagonal(this,otherCell,2);
+
   var samePlace = this == otherCell;
-  return (simpleMove || longMove || alhson) && !samePlace;
+  return (simpleMove || longMove || diagonal) && !samePlace;
 }
 
 Cell.prototype.validChangeSoldier = function (otherCell) {

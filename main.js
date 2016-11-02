@@ -89,11 +89,6 @@ Cell.prototype.attack = function (otherCell) {
         otherCell.removeSoldier();
         atomicMoveSolider(thisCell,otherCell);
         setChosenCell(null);
-        if(iAmTheAttacker){
-          messageToScreen("Great move, you have another turn");
-        } else {
-          messageToScreen("ohhh too bad");
-        }
       } else { // LOSE FIGHT
         console.log("attacker lose");
         thisCell.removeSoldier();
@@ -173,8 +168,7 @@ Cell.prototype.validMove = function (otherCell) {
   var simpleMove = ((Math.abs(this.row - otherCell.row) + Math.abs(this.col - otherCell.col) == 1));
   var longMove = validLong(this,otherCell,2);
   var diagonal = validDiagonal(this,otherCell,2);
-
-  var samePlace = this == otherCell;
+  var samePlace = otherCell == this;
   return (simpleMove || longMove || diagonal) && !samePlace;
 }
 
@@ -283,10 +277,9 @@ function nextPlayer(){
     currentPlayer = players[(currentPlayer.id + 1) % 2];
   	//rotateBoard();
   }
-  if (currentPlayer.id == whoAmI) {
-    messageToScreen("Your turn now");
-  }
+  setWhosTurn();
   setChosenCell(null);
+  setClock();
 	refreshAllCells();
 }
 
@@ -309,13 +302,23 @@ function addSoldiersToStack(stack,type,amount) {
     stack.push(type);
   }
 }
+function getRandomPlayerType(){
+  var simpleStack = new Array();
+  simpleStack.push(SoldierType.ROCK);
+  simpleStack.push(SoldierType.PAPER);
+  simpleStack.push(SoldierType.SCISSORS);
+  shuffle(simpleStack);
+  return simpleStack.pop();
+}
+
 function getStack(){
   var stack = new Array();
   addSoldiersToStack(stack,SoldierType.ROCK,4)
   addSoldiersToStack(stack,SoldierType.PAPER,4)
   addSoldiersToStack(stack,SoldierType.SCISSORS,4)
   addSoldiersToStack(stack,SoldierType.FLAG,1)
-  addSoldiersToStack(stack,SoldierType.BOMB,3)
+  addSoldiersToStack(stack,SoldierType.BOMB,2)
+  stack.push(getRandomPlayerType());
   shuffle(stack);
   return stack;
 }
@@ -327,7 +330,8 @@ function cellMosueOut (){
   command['show'] = false;
   command['row'] = thisCell.row;
   command['col'] = thisCell.col;
-  ///sendData(JSON.stringify(command)); TODO
+  //console.log("cellMosueOut " + thisCell.row + " " + thisCell.col)
+  //sendData(JSON.stringify(command));
 }
 
 function cellMosueOver (){
@@ -337,14 +341,9 @@ function cellMosueOver (){
   command['show'] = true;
   command['row'] = this.row;
   command['col'] = this.col;
-  //sendData(JSON.stringify(command)); TODO
+  //console.log("cellMosueOver " + thisCell.row + " " + thisCell.col)
+  //sendData(JSON.stringify(command));
 }
-
-function eachback(a){
-    $(a).mouseover(m2);
-}
-
-$( ".backgroundCell" ).each(eachback)
 
 function shuffle (array) {
   var i = 0
@@ -408,7 +407,7 @@ function clickCell(e){
       setChosenCell(thisCell);
     } else if(chosenCell.validMove(thisCell)){ //move soldier
       if (thisCell.soldier) { // move and attack
-          sendData(createMoveCommand("revealAndMove",chosenCell,thisCell,true))
+        sendData(createMoveCommand("revealAndMove",chosenCell,thisCell,true))
       } else {  // just move
         moveSoldier(chosenCell,thisCell);
       }

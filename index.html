@@ -6,6 +6,7 @@
 		<script src="main.js"></script>
 		<script src="view.js"></script>
 		<script src="minigame.js"></script>
+		<script src="autoplay.js"></script>
 		<title>Rick And Morty RPS</title>
 		<link rel="stylesheet" type="text/css" href="style.css">
 	</head>
@@ -22,9 +23,15 @@
 					<img id="minigame_scissors" class="minigame_soldier" class="soldier" src="pics/MORTY_SCISSORS_FRONT.png"></img>
 				</div>
 			</div>
+			<div id="clockdiv">
+				<span id="clockdivspan"></span>
+			</div>
+			<div id="whosTurn">
+				<img></img>
+			</div>
 			<div class="messages" id="message" onclick="clickMessage()">
 				<img class="messages_img" id="messages_img" src="pics/rickTalking.png"></img>
-				<h2 class="messages_text" id="messages_text">Generating a special inter-galactic code<h2>
+				<h2 class="messages_text" id="messages_text">Wait...<h2>
 				<input class="messages_input" id="connectionCode2" onpaste="onPaste()" placeholder="Or .. Paste your friend code here"></input>
 			</div>
 		</div>
@@ -91,11 +98,20 @@ function connect(code){
 	});
 }
 
+function setWhosTurn(){
+	var pic = (currentPlayer.id == 0)? "rickTurn.png" : "mortyTurn.png";
+		$("#whosTurn img").each(function() {
+			$(this).attr("src",pic)
+		});
+}
+
 function startGame(){
 	$("#message").hide();
 	$("#connectionCode2").hide();
 	currentPlayer = players[0];
+	setWhosTurn();
 	placeSoldiers();
+	setClock();
 	allowRemoveMessage = true;
 }
 
